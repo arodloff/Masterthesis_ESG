@@ -7,7 +7,7 @@
 3. `parse_parallel.py`,`parse_parallel_split.py`, `clean_and_train.py`, and `create_dict.py` in `CreateDict_SplitSentence/`
 4. `03_FurtherProcessing.R`, `04_IdentifyAndPreprocess_ESGSentences.R` and `05_PreprocessFinBERT.R`
 5. `predict_sentiment.py` in `FinBERT/`
-6. `07_..` until `10_..` in `Code_R/`
+6. `06_..` until `10_..` in `Code_R/`
 
 ## File Explanatation
 
@@ -15,7 +15,7 @@
 - `01_CleanData.R` extracts and cleans the earningscalls transcripts and the ESG scores by Refinitiv. The Transcripts and IDs are saved to be processed by the (modified) code by Li et al (2020).
 - `02_CopySeedwords.R` transforms the seed words file `berg_draft.xlsx` in to a format which can be copied into `global_options.py`.
 - `03_FurtherProcessing.R` uses the output of `parse_parallel.py` and `clean_and_train.py` and does some intensive preprocessing such as generating a list of all tokens and their document and sentence id, which can be used later (takes a lot of time and resources)
-- `04_IdentifyAndPreprocess_ESGSentences` identifies ESG sentences, and calculates the tf, idf, tf-idf, and the sentiment scores by the LM20111 dict for the ESG words in those sentences.
+- `04_IdentifyAndPreprocess_ESGSentences` identifies ESG sentences, and calculates the tf, idf, tf-idf, and the sentiment scores by the LM2011 dictionary for the ESG words in those sentences.
 - `05_PreprocessFinBERT.R` does some preprocessing of the identified ESG sentences so that they can be fed into FinBERT.
 - `06_PostprocessFinBERT.R` basically merges the FinBERT predicitons with the table created in `04_IdentifyAndPreprocess_ESGSentences`
 - `07_ScoreSentences.R` creates all six scores on the sentence level
