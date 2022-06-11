@@ -1,4 +1,4 @@
-# Masterthesis_ESG
+# Masterthesis ESG Scores with NLP
 
 ## Recommended Running Order
 
