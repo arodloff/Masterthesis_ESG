@@ -38,5 +38,5 @@
 
 ## Other Important files
 
-- the extended dictionary can be found in `CreateDict_SplitSentence/outputs/dict/expanded_dict.csv`
+- the extended dictionary (with removed words) can be found in `CreateDict_SplitSentence/outputs/dict/expanded_dict.csv`
 - the FinBERT predictions can be found in `FinBERT/output/predictions.csv`
