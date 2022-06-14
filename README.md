@@ -35,3 +35,8 @@
 
 - `parse_parallel_split.py` splits earnings call transcripts into lines. Needed to match FinBERT output to rest
 - `predict_sentiment.py` FinBERT predicts sentiment of identified ESG sentences
+
+## Other Important files
+
+- the extended dictionary can be found in `CreateDict_SplitSentence/outputs/dict/expanded_dict.csv`
+- the FinBERT predictions can be found in `FinBERT/output/predictions.csv`
