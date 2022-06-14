@@ -1,4 +1,4 @@
-# Masterthesis ESG Scores with NLP
+# Masterthesis: Creating ESG Scores Using NLP
 
 ## Recommended Running Order
 
