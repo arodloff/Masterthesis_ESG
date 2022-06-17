@@ -1,0 +1,419 @@
+library(tidyverse)
+library(stargazer)
+#library(gt)
+#library(gtExtras)
+scores_full <-  readRDS("../Data/scores_yearly_matched.RDS")
+scores_wide <-  readRDS("../Data/scores_yearly_matched_wide.RDS")
+df_aggregated_scores <- scores_full #%>% left_join(df_callInfo) %>%
+  #group_by(ticker, year, type, companyname) %>% 
+  #summarise(across(ends_with("score"), ~mean(.) )) %>% ungroup()
+
+
+scores_names <- list(
+  'tf_score'="tf_score",
+  'tf_idf_score'="tfidf_score",
+  'sentim_TF_score'= expression(paste("sentim_tf_score"^{"(FB)"}) ),
+  'sentim_score' = expression(paste("sentim_tfidf_score"^{"(FB)"}) ),
+  'sentim_TF_LM_score'= expression(paste("sentim_tf_score"^{"(LM)"}) ),
+  'sentim_LM_score' =expression(paste("sentim_tfidf_score"^{"(LM)"}) )
+)
+scores_labeller <- function(variable,value){
+  return(scores_names[value])
+}
+
+
+# Attempts to plot Distribution ----------------------------------------------------------------
+
+
+#mutate(across(name, factor, levels=c("PRC","TURN_MCAP","INTVOL","OPVOL_OPINT","ATM_IV"))
+
+
+# violin transformed
+scores_full %>%
+  #filter( score == "tf_score") %>%
+  mutate(across(type, factor, levels = c("Overall", "E", "S", "G")) ) %>% 
+  mutate(across(type, factor, levels = c("G","S","E","Overall")) ) %>% 
+   mutate(across(score, factor
+                 , levels = c("tf_score", "tf_idf_score"
+                              ,"sentim_TF_score","sentim_score",
+                              "sentim_TF_LM_score", "sentim_LM_score"))) %>% 
+  mutate(value2 = sign(value) * abs(value)^(1/3)) %>% 
+  ggplot(aes(y = factor(type), x = value2, color = type, fill = type)) +
+  geom_() +
+  scale_color_manual(values = c("#F8766D","#619CFF","#00BA38","grey50"),guide = guide_legend(reverse = TRUE)) +
+  scale_fill_manual(values = c("#F8766D","#619CFF","#00BA38","grey50"),guide = guide_legend(reverse = TRUE)) +
+  #scale_fill_hue(guide = guide_legend(reverse = TRUE))+
+  #scale_color_hue(guide = guide_legend(reverse = TRUE))+
+  facet_wrap(~score, ncol = 2, labeller = scores_labeller) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = .3)+
+  theme_minimal() +
+  labs(x = " ", y = "", subtitle = "Extreme outliers") +
+  theme(legend.title = element_blank())
+
+ggsave("../Plots/violion_transformed.png", width = 14, height = 7, bg = "white")
+
+
+
+
+# boxplot transformed
+scores_full %>%
+  #filter( score == "tf_score") %>%
+  mutate(across(type, factor, levels = c("Overall", "E", "S", "G")) ) %>% 
+  mutate(across(type, factor, levels = c("G","S","E","Overall")) ) %>% 
+  mutate(across(score, factor
+                , levels = c("tf_score", "tf_idf_score"
+                             ,"sentim_TF_score","sentim_score",
+                             "sentim_TF_LM_score", "sentim_LM_score"))) %>% 
+  mutate(value2 = sign(value) * abs(value)^(1/3)) %>% 
+  ggplot(aes(y = factor(type), x = value2, color = type)) +
+  geom_boxplot() +
+  scale_color_manual(values = c("#F8766D","#619CFF","#00BA38","grey50"),guide = guide_legend(reverse = TRUE)) +
+  #scale_fill_manual(values = c("#F8766D","#619CFF","#00BA38","grey50"),guide = guide_legend(reverse = TRUE)) +
+  #scale_fill_hue(guide = guide_legend(reverse = TRUE))+
+  #scale_color_hue(guide = guide_legend(reverse = TRUE))+
+  facet_wrap(~score, ncol = 2, labeller = scores_labeller) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = .3)+
+  theme_minimal() +
+  labs(x = " ", y = "") +
+  theme(legend.title = element_blank())
+
+ggsave("../Plots/boxplot_transformed.png", width = 14, height = 7, bg = "white")
+
+# violin untransformed
+scores_full %>%
+  #filter( score == "tf_score") %>%
+  mutate(across(type, factor, levels = c("Overall", "E", "S", "G")) ) %>% 
+  mutate(across(score, factor
+                , levels = c("tf_score", "tf_idf_score"
+                             , "sentim_TF_score","sentim_score","sentim_TF_LM_score",
+                              "sentim_LM_score"))) %>% 
+  ggplot(aes(factor(type), value, color = type, fill = type)) +
+  geom_violin() +
+  facet_wrap(~score, ncol = 2, labeller = scores_labeller) +
+  theme_minimal() +
+  labs(x = " ", y = "") +
+  coord_flip()
+
+# boxplot unstranformed, outliers removed
+calc_boxplot_stat <- function(x) {
+  coef <- 1.5
+  n <- sum(!is.na(x))
+  # calculate quantiles
+  stats <- quantile(x, probs = c(0.0, 0.25, 0.5, 0.75, 1.0))
+  names(stats) <- c("ymin", "lower", "middle", "upper", "ymax")
+  iqr <- diff(stats[c(2, 4)])
+  # set whiskers
+  outliers <- x < (stats[2] - coef * iqr) | x > (stats[4] + coef * iqr)
+  if (any(outliers)) {
+    stats[c(1, 5)] <- range(c(stats[2:4], x[!outliers]), na.rm = TRUE)
+  }
+  return(stats)
+}
+
+scores_full %>%
+  #filter( score == "tf_score") %>%
+  mutate(across(type, factor, levels = c("G","S","E","Overall")) ) %>% 
+  mutate(across(score, factor
+                , levels = c("tf_score", "tf_idf_score"
+                             ,"sentim_TF_score","sentim_score",
+                             "sentim_TF_LM_score", "sentim_LM_score"))) %>% 
+  ggplot(aes( y = factor(type), x = value, fill = type)) +
+  #geom_boxplot(outlier.size = NA) +
+  stat_summary(fun.data = calc_boxplot_stat, geom="boxplot") +
+  scale_fill_manual(values = c("#F8766D","#619CFF","#00BA38","grey50"),guide = guide_legend(reverse = T)) +
+  #geom_jitter() +
+  facet_wrap(~score, scales = "free", ncol = 2, labeller = scores_labeller) +
+  theme_minimal(base_size = 15) +
+  geom_vline(xintercept = 0, linetype = "dashed", alpha = .3)+
+  labs(x = " ", y = ""
+       #, subtitle = "Outliers removed. Outliers are identifed as values x < Q1(x) - 1.5*IQR or x > Q4(x) + 1.5*IQR  " 
+       ) +
+  theme(legend.title = element_blank())
+
+ggsave("../Plots/boxplot_nooutliers.png", width = 14, height = 7, bg = "white")
+
+# Histogram
+scores_full %>%
+ # filter( score == "tf_score") %>%
+  mutate(across(type, factor, levels = c("Overall", "E", "S", "G")) ) %>% 
+  mutate(across(score, factor
+                , levels = c("tf_score", "tf_idf_score"
+                             , "sentim_TF_score", "sentim_TF_LM_score"
+                             ,"sentim_score", "sentim_LM_score"))) %>% 
+  #filter(score == "tf_score") %>% 
+  ggplot(aes(value, fill = type)) +
+  geom_histogram(aes(y = ..density..)) +
+  facet_wrap(~score, ncol = 2, scales = "free") +
+  theme_minimal()
+  
+  #geom_jitter() +
+  #facet_grid(cols = vars(type), rows = vars(score), scales = "free") 
+
+# Density
+scores_full %>%
+  filter( score == "tf_score") %>%
+  mutate(across(type, factor, levels = c("Overall", "E", "S", "G")) ) %>% 
+  mutate(across(score, factor
+                , levels = c("tf_score", "tf_idf_score"
+                             , "sentim_TF_score", "sentim_TF_LM_score"
+                             ,"sentim_score", "sentim_LM_score"))) %>% 
+  mutate(value2 = sign(value) * abs(value)^(1/3)) %>% 
+  #mutate(value = value^2) %>% 
+  #filter(score == "tf_score") %>% 
+  ggplot(aes(value, color = factor(type))) +
+  geom_density() +
+  facet_wrap(~score, scales = "free")  +
+  theme_minimal() +
+  xlim(xlim = c(0,4))
+
+# Cum Density
+scores_full %>%
+  #filter( score == "tf_score") %>%
+  mutate(across(type, factor, levels = c("Overall", "E", "S", "G")) ) %>% 
+  mutate(across(score, factor
+                , levels = c("tf_score", "tf_idf_score"
+                             , "sentim_TF_score", "sentim_TF_LM_score"
+                             ,"sentim_score", "sentim_LM_score"))) %>% 
+  #mutate(value = value^2) %>% 
+  #filter(score == "tf_score") %>% 
+  ggplot(aes(value, color = factor(type))) +
+  stat_ecdf() +
+  #geom_jitter() +
+  facet_wrap(~score, scales = "free") 
+
+# QQ Plot
+
+
+scores_full %>%
+  mutate(across(type, factor, levels = c("Overall", "E", "S", "G")) ) %>% 
+  mutate(across(score, factor
+                , levels = c("tf_score", "tf_idf_score"
+                             , "sentim_TF_score", "sentim_TF_LM_score"
+                             ,"sentim_score", "sentim_LM_score"))) %>% 
+  ggplot(aes(sample = value, color = factor(type))) +
+  stat_qq()+
+  #geom_jitter() +
+  facet_wrap(~score, scales = "free") 
+
+ggsave("kernel.png", width =14, height = 7)
+
+# Descriptive Statistics --------------------------------------------------
+
+# Simple summary statistics
+stargazer(data.frame(scores_wide %>% filter(type == "Overall")%>% select(ends_with("score"))), type = "latex", summary = T)
+stargazer(data.frame(scores_wide %>% filter(type == "E")%>% select(ends_with("score"))), type = "latex", summary = T)
+stargazer(data.frame(scores_wide %>% filter(type == "S")%>% select(ends_with("score"))), type = "latex", summary = T)
+stargazer(data.frame(scores_wide %>% filter(type == "G")%>% select(ends_with("score"))), type = "latex", summary = T)
+
+scores_full %>% filter(type == "Overall") %>% 
+  group_by(score, type) %>% 
+  summarise(
+    N = n(),
+    min = min(value, na.rm = TRUE),
+    mean = mean(value, na.rm = TRUE),
+    med = median(value, na.rm = T),
+    max = max(value, na.rm = TRUE),
+    sd = sd(value, na.rm = TRUE),
+    hist_data = list(value),
+    dens_data = list(value),
+    .groups = "drop"
+  ) %>% 
+  gt() %>%
+  # histogram and density plots
+  gtExtras::gt_sparkline(
+    hist_data,
+    type = "histogram",
+    line_color = "#474747FF",
+    fill_color = "#474747FF",
+    bw = 0.75,
+    same_limit = TRUE
+  ) %>%
+  gtExtras::gt_sparkline(
+    dens_data,
+    type = "density",
+    line_color = "#474747FF",
+    fill_color = "#DFDFDFFF",
+    bw = 0.75,
+    same_limit = TRUE
+  )
+
+
+# min-max
+
+scores_full %>% group_by(score, type) %>% 
+  summarise(name = companyname[which.max(value)], min = max(value)) %>% view
+
+
+
+# # Boxplot over time -------------------------------------------------------
+# 
+# df_aggregated_scores %>% pivot_longer(-c(ticker, companyname, year, type)) %>% 
+#   filter(name == "tf_score") %>% 
+#   filter(value > quantile(value, 0.1), value < quantile(value, 0.9)) %>% 
+#   ggplot(aes(x = year, y = value, group = year)) +
+#   geom_boxplot() +
+#   facet_wrap(~type)
+# 
+# test <- df_aggregated_scores %>% mutate(exp_sentim = exp(sentim_score)) %>% mutate(sentim_score = exp_sentim/sum(exp_sentim))
+# summary(test)
+# Mean Score over time --------------------------------------------------
+
+scores_full %>% 
+  drop_na(asset4) %>%
+  group_by(year, type) %>% 
+  summarize(asset4 = median(asset4)) %>% 
+  mutate(across(type, factor, levels = c("Overall", "E", "S", "G")) ) %>% 
+  ggplot(aes(x = year, y = asset4, color = type)) +
+  geom_line() +
+  geom_smooth(se = F, method = "lm") +
+  theme_bw(base_size = 15) +
+  theme(legend.title = element_blank())+
+  scale_color_manual(values = c("grey50", "#00BA38" , "#619CFF","#F8766D")) +
+  labs(#title = "Mean Scores over Time"
+    x = " ", y = " ")
+  
+ggsave(filename = "../Plots/median_asset4_year.png", width = 14, height = 7, bg = "white")
+
+
+df_aggregated_scores <-  df_aggregated_scores %>%
+  #pivot_longer(-c(refinitiv_code, ticker, companyname, year, type)) %>% 
+  group_by(year, type, score) %>% 
+  summarise(value =  median(value)) 
+  #filter(name == "sentim_score") %>% 
+
+df_aggregated_scores$type <- factor(df_aggregated_scores$type, levels=c("Overall","E", "S", "G"))  
+df_aggregated_scores$score <- factor(df_aggregated_scores$score, levels=c("tf_score", "tf_idf_score", "sentim_TF_score", "sentim_score",  "sentim_TF_LM_score","sentim_LM_score"))  
+scores_names <- list(
+  'tf_score'="tf_score",
+  'tf_idf_score'="tfidf_score",
+  'sentim_TF_score'= expression(paste("sentim_tf_score"^{"(FB)"}) ),
+  'sentim_TF_LM_score'= expression(paste("sentim_tf_score"^{"(LM)"}) ),
+  'sentim_score' = expression(paste("sentim_tfidf_score"^{"(FB)"}) ),
+  'sentim_LM_score' =expression(paste("sentim_tfidf_score"^{"(LM)"}) )
+)
+scores_labeller <- function(variable,value){
+  return(scores_names[value])
+}
+
+df_aggregated_scores %>% ggplot(aes(x = year, y = value, color = type, group = type)) +
+  geom_line() +
+  geom_smooth(se = F, method = "lm")+
+  facet_wrap(~score, scales = "free", ncol = 2,
+             labeller = scores_labeller
+             ) +
+  theme_bw(base_size = 15) +
+  theme(legend.title = element_blank())+
+  scale_color_manual(values = c("grey50", "#00BA38" , "#619CFF","#F8766D")) +
+  labs(#title = "Mean Scores over Time"
+    x = " ", y = " ")
+
+ggsave(filename = "../Plots/mean_scores_year.png", width = 14, height = 7)
+  
+
+# # Industry variation ------------------------------------------------------
+# # not really useful?
+# scores_full %>% 
+#   filter(score == "tf_score", value > -1 , value < 1) %>% 
+#   ggplot(aes(y = ind_desc, x = value)) +
+#   geom_boxplot() +
+#   facet_wrap(~type)
+# x
+
+# Variance Decomposition --------------------------------------------------
+
+temp <- scores_full %>% 
+  drop_na(ind_desc) %>%
+  filter(score == "tf_score") %>%
+  select(-score) %>% filter(type == "Overall")
+library(fixest)
+
+feols(value ~  1 |year, temp)  
+feols(value ~  1 | year + ind_desc, temp)  
+feols(value ~1 | year + ind_desc + year^ind_desc, temp)
+
+
+# Top words --------------------------------------------------------
+results <- readRDS("../Data/locations_ESG_words.RDS")
+
+# Top words
+results %>% group_by(term, type) %>% count() %>% 
+  group_by(type) %>% slice_max(n,n =  20) %>% 
+  select(-n) %>% mutate(temp = row_number()) %>% 
+  ungroup() %>%
+  pivot_wider(names_from = "type", values_from = "term") %>% select(-temp) %>% select(E,S,G) %>% 
+  stargazer(.,type = "latex", summary = F, rownames = T)
+
+# # Bottom words
+# results %>% group_by(term, type) %>% count() %>% 
+#   group_by(type) %>% slice_min(n,n =  10) %>% 
+#   select(-n) %>% mutate(temp = row_number()) %>% 
+#   ungroup() %>%
+#   pivot_wider(names_from = "type", values_from = "term") %>% select(-temp) %>% drop_na %>% 
+#   select(E, S, G)
+
+
+# BERG --------------------------------------------------------------------
+
+# Berg Original Table -----------------------------------------------------
+
+
+readxl::read_excel("../Data/berg_draft5.xlsx", sheet = 1, skip = 4) %>%
+  mutate(across(everything(), ~ ifelse(is.na(.),0,. )      )) %>% 
+  rename(Category = 1, `Vigeo Eiris` = 3) %>% 
+  mutate(Category = str_squish(Category)) %>% 
+  slice(1:66) %>% 
+  stargazer(., type = "latex", summary = F, rownames = F)
+  
+
+# Berg my Classification --------------------------------------------------
+
+readxl::read_excel("../Data/berg_draft5.xlsx", sheet = 2) %>% 
+  select(`Taxonomy Category` = 2, `Final ESG Category` = AutoCategory, Sustainalytics, Asset4, `Vigeo Eiris` = `Vigeo  Eiris`, KLD) %>% 
+  filter( `Final ESG Category` != 0 ) %>% 
+  stargazer(., type = "latex", summary = F, rownames = F
+           # , notes = "This table shows the ESG classification of the Berg et al (2019) illustration for four providers and the resulting final classifcation. The values represent the different ESG dimensions of the providers, i.e. 'E' = environmental, 'S' = social, 'G' = governance, 'Ec' = economic[CHECK] (only Asset4), 'F' = financial (only KLD[CHECK]) "
+            )
+
+# Berg with seed words --------------------------------------------------------------
+
+readxl::read_excel("../Data/berg_draft5.xlsx", sheet = 3)%>% rename(Taxonomy = 1, Extensions = 3, use = 4) %>% mutate(seed_words = case_when(use == 0 ~ NA_character_,
+                                                                                                                                              use == 1 ~ Taxonomy, 
+                                                                                                                                              use == 2 ~ Extensions, 
+                                                                                                                                              use == 3 ~ paste(Taxonomy, Extensions, sep = ", ")
+                                                                                                                                              
+)
+#,seed_words = str_replace(seed_words, "\\s\\s+, ' ')", " ")
+, seed_words = str_to_lower(seed_words)
+, seed_words = str_squish(seed_words)
+, seed_words = str_replace_all(seed_words, "\\b\\s+\\b", "_")
+, Taxonomy = str_squish(Taxonomy)
+) %>% select(Taxonomy, Category, seed_words) %>% arrange(Category) %>% filter(!is.na(seed_words)) %>% 
+stargazer(., type = "latex", summary = F, rownames = F)
+
+## Actual seedwords ---------------------------------------------------------------
+
+# full seed words
+df <- readxl::read_excel("../Data/berg_draft5.xlsx", sheet = 3)%>% rename(term1 = 1, term2 = 3, use = 4) %>% filter(use >0) %>% 
+  pivot_longer(cols = starts_with("term")) %>% filter(!is.na(value), !(use == 2 & name == "term1")) %>% select(-c(name,use, Comment))
+
+# Count seedwords per category
+df %>% count(Category) %>% pull(n) %>% sum
+
+df <- df %>%  separate_rows(value, sep = ", " ) %>% 
+  mutate(value= str_to_lower(value), value = str_replace_all(value,"  ", "_"),  value = str_replace_all(value," ", "_") )
+# Load unique trigram tokens
+unique_tokens <- readRDS("../Data/tokens_unique_trigram.RDS")
+seed_words <- df %>% pull(value)
+
+idx <-  seed_words %in% unique_tokens
+
+df_new <- df[idx,]
+
+# Count actual seed words
+df_new %>% group_by(Category) %>% count()
+
+# Actual seedwords   
+ df_new %>% group_by(Category) %>%
+  mutate(id = row_number() ) %>% 
+  ungroup() %>%  pivot_wider(names_from = "Category", values_from = "value") %>% select(E, S, G) %>% 
+  stargazer(., type = "latex", summary = F, rownames = F)

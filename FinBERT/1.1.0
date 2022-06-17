@@ -1,0 +1,2 @@
+Requirement already satisfied: torch in c:\users\ar\.conda\envs\finbert\lib\site-packages (1.10.2)
+Requirement already satisfied: typing-extensions in c:\users\ar\.conda\envs\finbert\lib\site-packages (from torch) (4.0.1)
