@@ -13,7 +13,7 @@
 - All relevent R skripts are in `Code_R/`
 - The (modified) code and files by Li et al. (2020) is in `CreateDict_SplitSentence/`
   - The original repository can be found [here](https://github.com/MS20190155/Measuring-Corporate-Culture-Using-Machine-Learning)
-- Everything related to FinBERT is in `FinBERT`
+- Everything related to FinBERT is in `FinBERT/`
 - Notice that the folders `Data/`, `CreateDict_SplitSentence/data/`, and `FinBERt/output/` are not in this repository as the files in them are too large and the redistribution rights are unknown 
 
 ### R Files
