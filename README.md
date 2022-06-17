@@ -12,8 +12,9 @@
 ## File and Folder Explanatation
 - All relevent R skripts are in `Code_R/`
 - The (modified) code and files by Li et al. (2020) is in `CreateDict_SplitSentence/`
-  - The original files can be found [here](https://github.com/MS20190155/Measuring-Corporate-Culture-Using-Machine-Learning)
+  - The original repository can be found [here](https://github.com/MS20190155/Measuring-Corporate-Culture-Using-Machine-Learning)
 - Everything related to FinBERT is in `FinBERT`
+- Notice that the folders `Data/`, `CreateDict_SplitSentence/data/`, and `FinBERt/output/` are not in this repository as the files in them are too large and partially contain proprietary data
 
 ### R Files
 - `01_CleanData.R` extracts and cleans the earningscalls transcripts and the ESG scores by Refinitiv. The Transcripts and IDs are saved to be processed by the (modified) code by Li et al (2020).
@@ -41,6 +42,4 @@
 - `predict_sentiment.py` FinBERT predicts sentiment of identified ESG sentences
 
 ## Other Important files
-
 - the extended dictionary (with removed words) can be found in `CreateDict_SplitSentence/outputs/dict/expanded_dict.csv`
-- the FinBERT predictions can be found in `FinBERT/output/predictions.csv`
