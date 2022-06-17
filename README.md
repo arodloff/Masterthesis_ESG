@@ -9,7 +9,11 @@
 5. `predict_sentiment.py` in `FinBERT/`
 6. `06_..` until `10_..` in `Code_R/`
 
-## File Explanatation
+## File and Folder Explanatation
+- All relevent R skripts are in `Code_R/`
+- The (modified) code and files by Li et al. (2020) is in `CreateDict_SplitSentence/`
+- The original files can be found [here](https://github.com/MS20190155/Measuring-Corporate-Culture-Using-Machine-Learning)
+- Everything related to FinBERT is in `FinBERT`
 
 ### R Files
 - `01_CleanData.R` extracts and cleans the earningscalls transcripts and the ESG scores by Refinitiv. The Transcripts and IDs are saved to be processed by the (modified) code by Li et al (2020).
