@@ -22,7 +22,7 @@
 - `03_FurtherProcessing.R` uses the output of `parse_parallel.py` and `clean_and_train.py` and does some intensive preprocessing such as generating a list of all tokens and their document and sentence id, which can be used later (takes a lot of time and resources)
 - `04_IdentifyAndPreprocess_ESGSentences` identifies ESG sentences, and calculates the tf, idf, tf-idf, and the sentiment scores by the LM2011 dictionary for the ESG words in those sentences.
 - `05_PreprocessFinBERT.R` does some preprocessing of the identified ESG sentences so that they can be fed into FinBERT.
-- `06_PostprocessFinBERT.R` basically merges the FinBERT predicitons with the table created in `04_IdentifyAndPreprocess_ESGSentences`
+- `06_PostprocessFinBERT.R` basically merges the FinBERT predicitons with the table created in `04_IdentifyAndPreprocess_ESGSentences.R`
 - `07_ScoreSentences.R` creates all six scores on the sentence level
 - `08_ScoreCompanies.R` aggregates the scores on the company level and matches the text-based scores with the Asset4 scores and the FF12-industry classifiers
 - `09_TablesAndFigures.R` creates all tables and figures of the thesis, although most tables were modified in LaTeX afterward
